@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta charset="utf-8" />
+  <title>Camera In Chrome</title>
+  <script type="text/javascript" src="./RTImageDetectWithCamera.js"></script>
+  <script type="text/javascript" src="./keras.js"></script>
+</head>
+<body>
+  <div>
+    <button onclick="startVideo()">Start</button><br/>
+    <video id="local_video" autoplay></video>
+  </div>
+  <div>
+    <canvas id="plane_camera_canvas"></canvas>
+    <canvas id="cropped_canvas"></canvas>
+    <canvas id="scaled_canvas"></canvas>
+  </div>
+  <div id="predict_answer">
+  </div>
+</body>
+</html>
