@@ -35,6 +35,7 @@ function predictModel(data){
 function cameraToImage(){
     window.plane_camera_canvas.setAttribute("width", 320);
     window.plane_camera_canvas.setAttribute("height", 240);
+    window.plane_camera_canvas.setAttribute("style", "display:none");
     window.plane_camera_ctx.drawImage(window.localVideo, 0, 0, 320, 240);
     let cropped_image = window.plane_camera_ctx.getImageData(40, 0, 240, 240);
 
@@ -44,6 +45,7 @@ function cameraToImage(){
 
     window.scaled_canvas.setAttribute("width", 50);
     window.scaled_canvas.setAttribute("height", 50);
+    window.scaled_canvas.setAttribute("style", "display:none;");
     window.scaled_ctx.scale(50.0/240.0, 50.0/240.0)
     window.scaled_ctx.drawImage(window.cropped_canvas, 0, 0);
     let scaled_image = window.scaled_ctx.getImageData(0, 0, 50, 50);
@@ -102,6 +104,7 @@ function startVideo() {
 
 window.addEventListener('load', () => {
     window.localVideo = document.getElementById('local_video');
+    window.localVideo.setAttribute("style", "display:none");
     window.plane_camera_canvas = document.getElementById('plane_camera_canvas');
     window.plane_camera_ctx = window.plane_camera_canvas.getContext('2d');
     window.cropped_canvas = 
