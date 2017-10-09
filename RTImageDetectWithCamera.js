@@ -35,7 +35,8 @@ function predictModel(data){
 function cameraToImage(){
     window.plane_camera_canvas.setAttribute("width", 320);
     window.plane_camera_canvas.setAttribute("height", 240);
-    //window.plane_camera_canvas.setAttribute("style", "display:none");
+    if(window.thisBrowser == 'chrome')
+	window.plane_camera_canvas.setAttribute("style", "display:none");
     window.plane_camera_ctx.drawImage(window.localVideo, 0, 0, 320, 240);
     let cropped_image = window.plane_camera_ctx.getImageData(40, 0, 240, 240);
 
@@ -45,7 +46,8 @@ function cameraToImage(){
 
     window.scaled_canvas.setAttribute("width", 50);
     window.scaled_canvas.setAttribute("height", 50);
-    //window.scaled_canvas.setAttribute("style", "display:none;");
+    if(window.thisBrowser == 'chrome')
+	window.scaled_canvas.setAttribute("style", "display:none;");
     window.scaled_ctx.scale(50.0/240.0, 50.0/240.0)
     window.scaled_ctx.drawImage(window.cropped_canvas, 0, 0);
     let scaled_image = window.scaled_ctx.getImageData(0, 0, 50, 50);
@@ -80,48 +82,85 @@ function cameraToImage(){
 function startVideo() {
     if(navigator.getUserMedia || navigator.webkitGetUserMedia || 
        navigator.mozGetUserMedia || navigator.msGetUserMedia){
-	/*
-	navigator.getUserMedia({video:{width:640, height:480}, 
-			       audio: false}, sucessCallback, errorCallback)
-	    .then((stream) => {
-		//window.localVideo.src = window.URL.createObjectURL(stream);
+	if(window.userAgentInLowerCase.indexOf('iphone') != -1 ||
+	   window.userAgentInLowerCase.indexOf('ipad') != -1){
+	    // for iOS Devices
+	    const medias = {audio: false,
+			    video: {facingMode : {exact: "environment"}}};
+		navigator.getUserMedia(medias,
+				       function(stream){
+					   window.localVideo.srcObject = stream;
+				       },
+				       function(error){
+					   alert('navigator.getUserMedia() error:' + error);
+				       });
+	    
+	}
+	else if(window.thisBrowser == 'chrome'){
+	    // for Chrome
+	    let medias;
+	    if(window.navigator.userAgent.toLowerCase().indexOf('android') != -1){
+		// for Android Chrome (with both Front and Back Camera)
+		medias = {audio: false,
+			  video: {width: 640,
+				  wheight: 480,
+				  facingMode:{exact: "environment"}}};
+	    }
+	    else{
+		// for PC Chrome (with only 1 Camera)
+		medias = {audio: false,
+			  video: {width: 640,
+				  height: 480}};
+		
+	    }
+	    navigator.mediaDevices.getUserMedia(medias)
+		.then(stream => {
+		    window.localVideo.src = window.URL.createObjectURL(stream);
+		})
+		.catch(error => {
+		    console.error('navigator.mediaDvice.getUserMedia() error:', error);
+		    return;
+		});
+	}
+	else if(window.thisBrowser == 'safari'){
+	    // for Mac Safari
+	    const medias = {audio: false,
+			    video: {width:640, 
+				    height:480}};
+	    navigator.getUserMedia(medias,
+				   (stream) => {
+				       window.localVideo.srcObject = stream;
+				   },
+				   (error) => {
+				       console.error('navigator.getUserMedia() error:', error);
+				   });
+	    
+	}
 
-		window.localVideo.src = stream;
-	    })
-	    .catch((error) => {
-		console.error('mediaDvice.getUserMedia() error:', error);
-		return;
-	    });
-	*/
-	
-	const medias = {audio: false,
-			video: {facingMode : {exact: "environment"}}};
-	navigator.getUserMedia(medias,
-			       sucessCallback,
-			       errorCallback);
-	
 	setInterval(() => {
+	    // Convert to ImageData, cropping, scaling for Keras Network
 	    cameraToImage();
 	}, 1000);
-	
-    }
-    else{
-	alert('getUserMedia() is not supported in your browser');
     }
 }
 
-function sucessCallback(stream){
-    //window.localVideo.src = window.URL.createObjectURL(stream);
-    window.localVideo.srcObject = stream;
-}
-
-function errorCallback(err){
-    alert('getUserMedia() is not supported in your browser');
-}
-    
 window.addEventListener('load', () => {
+
+    window.userAgentInLowerCase = window.navigator.userAgent.toLowerCase();
+    document.getElementById("display_user_agent").innerHTML = 
+	window.userAgentInLowerCase;
+
+    if(userAgentInLowerCase.indexOf('chrome') != -1)
+	window.thisBrowser = 'chrome';
+    else if(userAgentInLowerCase.indexOf('safari') != -1)
+	window.thisBrowser = 'safari';
+    else
+	alert('Cannot use this program for your browser');
+
     window.localVideo = document.getElementById('local_video');
-    //window.localVideo.setAttribute("style", "display:none");
+    if(window.thisBrowser == 'chrome')
+	window.localVideo.setAttribute("style", "display:none");
+
     window.plane_camera_canvas = document.getElementById('plane_camera_canvas');
     window.plane_camera_ctx = window.plane_camera_canvas.getContext('2d');
     window.cropped_canvas = 
