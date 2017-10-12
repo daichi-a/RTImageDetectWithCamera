@@ -33,10 +33,8 @@ function predictModel(data){
 }
 
 function cameraToImage(){
-    let cropped_image;
     let scaled_image;
     let dataUrl;
-    let ratio = 50.0 / 240.0;
     window.scaled_canvas.setAttribute("width", 50);
     window.scaled_canvas.setAttribute("height", 50);
     
