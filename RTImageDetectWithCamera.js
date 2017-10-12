@@ -33,24 +33,21 @@ function predictModel(data){
 }
 
 function cameraToImage(){
-    window.plane_camera_canvas.setAttribute("width", 320);
-    window.plane_camera_canvas.setAttribute("height", 240);
-    if(window.thisBrowser == 'chrome')
-	window.plane_camera_canvas.setAttribute("style", "display:none");
-    window.plane_camera_ctx.drawImage(window.localVideo, 0, 0, 320, 240);
-    let cropped_image = window.plane_camera_ctx.getImageData(40, 0, 240, 240);
-
-    window.cropped_canvas.setAttribute("width", 240);
-    window.cropped_canvas.setAttribute("height", 240);
-    window.cropped_ctx.putImageData(cropped_image, 0, 0, 0, 0, 240, 240);
-
+    let cropped_image;
+    let scaled_image;
+    let dataUrl;
+    let ratio = 50.0 / 240.0;
     window.scaled_canvas.setAttribute("width", 50);
     window.scaled_canvas.setAttribute("height", 50);
-    if(window.thisBrowser == 'chrome')
-	window.scaled_canvas.setAttribute("style", "display:none;");
-    window.scaled_ctx.scale(50.0/240.0, 50.0/240.0)
-    window.scaled_ctx.drawImage(window.cropped_canvas, 0, 0);
-    let scaled_image = window.scaled_ctx.getImageData(0, 0, 50, 50);
+    
+    if(window.thisBrowser == 'ios' || window.thisBrowser == 'android'){
+	window.scaled_ctx.drawImage(window.localVideo, 0, 80, 480, 480, 0, 0, 50, 50);
+	scaled_image = window.scaled_ctx.getImageData(0, 0, 50, 50);
+    }
+    else{
+	window.scaled_ctx.drawImage(window.localVideo, 80, 0, 480, 480, 0, 0, 50, 50);
+	scaled_image = window.scaled_ctx.getImageData(0, 0, 50, 50);
+    }
 
     // Uint8*4のピクセルデータをKerasに喰わせるためにfloat32に変換
     let planeCameraData = new Float32Array(scaled_image.data);
@@ -82,18 +79,18 @@ function cameraToImage(){
 function startVideo() {
     if(navigator.getUserMedia || navigator.webkitGetUserMedia || 
        navigator.mozGetUserMedia || navigator.msGetUserMedia){
-	if(window.userAgentInLowerCase.indexOf('iphone') != -1 ||
-	   window.userAgentInLowerCase.indexOf('ipad') != -1){
+	if(window.thisBrowser == 'ios'){
 	    // for iOS Devices
 	    const medias = {audio: false,
 			    video: {facingMode : {exact: "environment"}}};
-		navigator.getUserMedia(medias,
-				       function(stream){
-					   window.localVideo.srcObject = stream;
-				       },
-				       function(error){
-					   alert('navigator.getUserMedia() error:' + error);
-				       });
+	    navigator.getUserMedia
+	    (medias,
+	     function(stream){
+		 window.localVideo.srcObject = stream;
+	     },
+	     function(error){
+		 alert('navigator.getUserMedia() error:' + error);
+	     });
 	    
 	}
 	else if(window.thisBrowser == 'chrome'){
@@ -102,8 +99,8 @@ function startVideo() {
 	    if(window.navigator.userAgent.toLowerCase().indexOf('android') != -1){
 		// for Android Chrome (with both Front and Back Camera)
 		medias = {audio: false,
-			  video: {width: 640,
-				  wheight: 480,
+			  video: {width: 480,
+				  wheight: 640,
 				  facingMode:{exact: "environment"}}};
 	    }
 	    else{
@@ -150,7 +147,12 @@ window.addEventListener('load', () => {
     document.getElementById("display_user_agent").innerHTML = 
 	window.userAgentInLowerCase;
 
-    if(userAgentInLowerCase.indexOf('chrome') != -1)
+    if(userAgentInLowerCase.indexOf('iphone') != -1 ||
+      userAgentInLowerCase.indexOf('ipad') != -1)
+	window.thisBrowser = 'ios';
+    if(userAgentInLowerCase.indexOf('android') != -1)
+	window.thisBrowser = 'android';
+    else if(userAgentInLowerCase.indexOf('chrome') != -1)
 	window.thisBrowser = 'chrome';
     else if(userAgentInLowerCase.indexOf('safari') != -1)
 	window.thisBrowser = 'safari';
@@ -158,14 +160,6 @@ window.addEventListener('load', () => {
 	alert('Cannot use this program for your browser');
 
     window.localVideo = document.getElementById('local_video');
-    if(window.thisBrowser == 'chrome')
-	window.localVideo.setAttribute("style", "display:none");
-
-    window.plane_camera_canvas = document.getElementById('plane_camera_canvas');
-    window.plane_camera_ctx = window.plane_camera_canvas.getContext('2d');
-    window.cropped_canvas = 
-	document.getElementById('cropped_canvas')
-    window.cropped_ctx = window.cropped_canvas.getContext('2d');
     window.scaled_canvas = 
 	document.getElementById('scaled_canvas')
     window.scaled_ctx = window.scaled_canvas.getContext('2d');
